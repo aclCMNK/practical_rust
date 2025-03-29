@@ -7,9 +7,9 @@ fn longest_word(sentence: &str) -> Option<&str> {
 
 fn longest_word2(sentence: &str) -> Option<&str> { 
     // Your implementation here 
-    let words = sentence.split_whitespace();
+    let words: std::str::Split<'_, char> = sentence.split(' ');
     let mut longest: Option<&str> = None;
-    for (pos, word) in words.enumerate() {
+    for (_, word) in words.enumerate() {
         if word.len() > longest.unwrap_or("").len() {
             longest = Some(word);
         }
@@ -28,6 +28,6 @@ fn main() {
         println!("None");
         return;
     }
-    println!("Longest word: {}", longest_word(&sentence).unwrap());
-    println!("Longest word: {}", longest_word2(&sentence).unwrap());
+    println!("Longest word with max_by_key: {}", longest_word(&sentence).unwrap());
+    println!("Longest word with for: {}", longest_word2(&sentence).unwrap());
 }
