@@ -1,0 +1,6 @@
+- install:
+	- cmake: sudo apt install cmake
+	- glfw: sudo apt install libglfw3-dev
+	- xinerama-dev: sudo apt install libxinerama-dev
+
+	cargo build tells you what packages install
