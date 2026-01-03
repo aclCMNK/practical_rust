@@ -1,3 +1,10 @@
+// CALLBACKS:
+// Rust allows us to run callbacks let us to use a potent and powerly procedures.
+// We can use two ways to create a callbacks:
+// 1. Sending a created function to callback function
+// 2. Sending a anonymous function to callback function
+
+
 fn callback<F>(cback: F) where F: Fn(i32) -> i32 {
     let result = cback(1);
     println!("{}", result);

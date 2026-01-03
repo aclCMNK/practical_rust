@@ -8,10 +8,11 @@ use rand::Rng;
 fn main() {
     let min_number: i32 = 1;
     let max_number: i32 = 50;
+    // generamos un numero aleatorio entre min = 1 hasta max = 50
     let secret_number: i32 = rand::rng().random_range(min_number..=max_number);
 
-    // "mut" means that the variable is mutable
-    // and it can be changed
+    // "mut" means that the variable is mutable and it can be changed
+    // "mut" significa que es una variable dispuesta a cambiar en el tiempo
     let mut guess: String = String::new();
     println!("sectret number: {}", secret_number);
 

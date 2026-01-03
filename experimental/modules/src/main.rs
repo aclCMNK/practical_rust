@@ -1,3 +1,8 @@
+/*
+ * TITLE: En este ejemplo aprendemos a cargar modulos desde main
+ * Cargaremos modulos como archivos y como dorectorios
+*/
+
 // file's name as module 
 mod ext_fn;
 
