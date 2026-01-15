@@ -1,0 +1,93 @@
+* |frame| self.draw(frame)
+----------------------------------
+|frame| Es un clousure, significa que es el inicio de una funcion anonima y el argumento es "frame"
+es como por ejemplo en js:
+(frame) => {
+    self.draw(frame)
+}
+
+ahora si la función anónima no necesita argumentos se escribe "||"
+
+
+* Propagación de errores:
+----------------------------------
+El simbolo ? significa que es un atajo para manejar errores sin tener que escribir mucho código.
+Es como un try catch.
+
+Hay una forma de escribirlo:
+
+match terminal.draw(|frame| self.draw(frame)) {
+    Ok(valor) => valor,
+    Err(error) => return Err(error), // sale de la función
+}
+
+pero se puede escribir de la siguiente manera:
+
+terminal.draw(|frame| self.draw(frame))?
+
+
+Explicación mas detallada:
+
+while !self.exit {                           // mientras exit sea false
+    terminal.draw(|frame| self.draw(frame))?; 
+    // │             │              │        └─ propaga error si falla
+    // │             │              └─ llama al método draw
+    // │             └─ closure que recibe frame
+    // └─ llama a terminal.draw pasándole la closure
+    
+    self.handle_events()?;                   
+    // └─ maneja eventos, propaga error si falla
+}
+
+
+Ok(()) // se usa para indicar que la operación fue exitosa
+
+
+* match
+----------------------------------
+El match es un switch en rust pero con esteroides
+
+Ejemplos:
+
+// Rust
+match numero {
+    1 => println!("Uno"),
+    2 => println!("Dos"),
+    3 => println!("Tres"),
+    _ => println!("Otro"),
+}
+
+// JavaScript (similar)
+switch (numero) {
+    case 1: console.log("Uno"); break;
+    case 2: console.log("Dos"); break;
+    case 3: console.log("Tres"); break;
+    default: console.log("Otro");
+}
+
+
+* "_ => {...}" Catch-all o casos por defecto:
+----------------------------------
+La expresión "_ => {...}" es una forma de manejar un caso por defecto en un match.
+es decir:
+
+match event::read()? {
+    Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+        self.handle_key_event(key_event)  // si es una tecla presionada
+    }
+    _ => {}  // para CUALQUIER OTRO evento (mouse, resize, release, etc.)
+             // no hagas nada
+};
+
+Ejemplos más claros:
+
+let numero = 5;
+
+match numero {
+    1 => println!("Es uno"),
+    2 => println!("Es dos"),
+    3 => println!("Es tres"),
+    _ => println!("Es otro número"),  // cualquier otro valor
+}
+
+Siguiendo este ejemplo más sencillo, el "_" significa que si el valor de numero difiere a 1, 2 o 3, entonces se ejecutara el println("Es otro número")
