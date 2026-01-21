@@ -4,6 +4,14 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
 
+fn clear_screen() {
+    println!("\x1B[2J\x1B[1;1H");
+}
+fn stop_line() {
+    println!("Presione enter para continuar");
+    std::io::stdin().read_line(&mut String::new()).unwrap();
+}
+
 fn generate_unique_id() -> String {
     let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
     format!("ID-{}", id)
@@ -43,6 +51,7 @@ fn add_book(library: &mut Library) {
     let mut author: String = String::new();
     let mut year: String = String::new();
 
+    clear_screen();
     println!("-----------------------------");
     println!("Ingrese el titulo del libro");
     std::io::stdin()
@@ -68,9 +77,14 @@ fn add_book(library: &mut Library) {
     book.available = true;
     book.status = true;
     library.books.insert(book.ID.clone(), book);
+
+    println!("Libro agregado exitosamente");
+    println!("-----------------------------");
+    stop_line();
 }
 
 fn list_books(library: &Library) {
+    clear_screen();
     println!("-----------------------------");
     println!("-----------------------------");
     for (id, book) in library.books.iter() {
@@ -82,9 +96,11 @@ fn list_books(library: &Library) {
         println!("-----------------------------");
     }
     println!("-----------------------------");
+    stop_line();
 }
 
 fn list_available_books(library: &Library) {
+    clear_screen();
     println!("-----------------------------");
     println!("-----------------------------");
     for (id, book) in library.books.iter() {
@@ -99,9 +115,11 @@ fn list_available_books(library: &Library) {
         println!("-----------------------------");
     }
     println!("-----------------------------");
+    stop_line();
 }
 
 fn list_borrowed_books(library: &Library) {
+    clear_screen();
     println!("-----------------------------");
     println!("-----------------------------");
     for (id, book) in library.books.iter() {
@@ -116,9 +134,11 @@ fn list_borrowed_books(library: &Library) {
         println!("-----------------------------");
     }
     println!("-----------------------------");
+    stop_line();
 }
 
 fn add_user(users: &mut HashMap<String, User>) {
+    clear_screen();
     println!("-----------------------------");
     println!("Ingrese el nombre del usuario");
     let mut name: String = String::new();
@@ -135,9 +155,14 @@ fn add_user(users: &mut HashMap<String, User>) {
     user.name = name.trim().to_string();
     user.nit = nit.trim().to_string();
     users.insert(user.nit.clone(), user);
+
+    println!("Usuario agregado exitosamente");
+    println!("-----------------------------");
+    stop_line();
 }
 
 fn list_users(users: &HashMap<String, User>) {
+    clear_screen();
     println!("-----------------------------");
     println!("-----------------------------");
     for (nit, user) in users.iter() {
@@ -146,21 +171,17 @@ fn list_users(users: &HashMap<String, User>) {
         println!("-----------------------------");
     }
     println!("-----------------------------");
+    stop_line();
 }
 
-fn borrow_book(bookID: String, nit: String, library: &Library, users: &mut HashMap<String, User>) {
+fn borrow_book(library: &mut Library, users: &mut HashMap<String, User>, borrowing_limit: u32) {
+    clear_screen();
     println!("-----------------------------");
     println!("Ingresa el nit del usuario:");
     let mut nit: String = String::new();
     std::io::stdin()
         .read_line(&mut nit)
         .expect("Error al leer el NIT");
-    println!("-----------------------------");
-    println!("Ingresa el ID del libro:");
-    let mut bookID: String = String::new();
-    std::io::stdin()
-        .read_line(&mut bookID)
-        .expect("Error al leer el ID");
     println!("-----------------------------");
     let mut user: User = User::default();
     if let Some(user_exists) = users.get(nit.trim()) {
@@ -170,12 +191,26 @@ fn borrow_book(bookID: String, nit: String, library: &Library, users: &mut HashM
         println!("-----------------------------");
         return;
     }
+    println!("Ingresa el ID del libro:");
+    let mut bookID: String = String::new();
+    std::io::stdin()
+        .read_line(&mut bookID)
+        .expect("Error al leer el ID");
+    println!("-----------------------------");
     let mut book: Book = Book::default();
     if let Some(book_exists) = library.books.get(bookID.trim()) {
         book = book_exists.clone();
     } else {
         println!("El libro no existe");
         println!("-----------------------------");
+        stop_line();
+        return;
+    }
+    let count: u32 = user.books.len() as u32;
+    if count >= borrowing_limit {
+        println!("El usuario ya tiene {} libros prestados", borrowing_limit);
+        println!("-----------------------------");
+        stop_line();
         return;
     }
     let mut borrowed_book: BorrowedBook = BorrowedBook::default();
@@ -187,10 +222,61 @@ fn borrow_book(bookID: String, nit: String, library: &Library, users: &mut HashM
     borrowed_book.borrowing_date = date;
     borrowed_book.due_date = due_date;
     user.books.insert(book.ID.clone(), borrowed_book);
-    book.available = false;
-
-    println!("Libro prestado exitosamente");
+    if let Some(lib_book) = library.books.get_mut(bookID.trim()) {
+        lib_book.status = false;
+        println!("Libro prestado exitosamente");
+    } else {
+        println!("El libro no existe");
+    }
     println!("-----------------------------");
+    stop_line();
+}
+
+fn return_book(library: &mut Library, users: &mut HashMap<String, User>) {
+    clear_screen();
+    println!("-----------------------------");
+    println!("-----------------------------");
+    println!("Ingresa el nit del usuario:");
+    let mut nit: String = String::new();
+    std::io::stdin()
+        .read_line(&mut nit)
+        .expect("Error al leer el NIT");
+    let mut user: User = User::default();
+    if let Some(user_exists) = users.get(nit.trim()) {
+        user = user_exists.clone();
+    } else {
+        println!("El usuario no existe");
+        println!("-----------------------------");
+        stop_line();
+        return;
+    }
+    println!("-----------------------------");
+    println!("Ingresa el ID del libro:");
+    let mut bookID: String = String::new();
+    std::io::stdin()
+        .read_line(&mut bookID)
+        .expect("Error al leer el ID");
+    let mut book: Book = Book::default();
+    if let Some(book_exists) = library.books.get(bookID.trim()) {
+        book = book_exists.clone();
+    } else {
+        println!("El libro no existe");
+        println!("-----------------------------");
+        stop_line();
+        return;
+    }
+    user.books.remove(&book.ID);
+    book.available = true;
+    if let Some(lib_book) = library.books.get_mut(&book.ID) {
+        lib_book.available = true;
+        library.books.insert(book.ID.clone(), book.clone());
+        println!("Libro devuelto exitosamente");
+    } else {
+        println!("El libro no existe");
+    }
+    println!("-----------------------------");
+    println!("-----------------------------");
+    stop_line();
 }
 
 fn main() {
@@ -199,6 +285,7 @@ fn main() {
     let mut users: HashMap<String, User> = HashMap::new();
 
     loop {
+        clear_screen();
         println!("Bienvenido a la biblioteca Rustaniana!");
         println!("Seleccione una accion:");
         println!("-----------------------------");
@@ -237,9 +324,11 @@ fn main() {
                 list_borrowed_books(&library);
             }
             "7" => {
-                borrow_book(String::new(), String::new(), &library, &mut users);
+                borrow_book(&mut library, &mut users, borrowing_limit);
             }
-            "8" => {}
+            "8" => {
+                return_book(&mut library, &mut users);
+            }
             "9" => {}
             "10" => {
                 add_user(&mut users);
